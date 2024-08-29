@@ -1,10 +1,12 @@
 package com.amakakeru.devtalk.repository;
 
-import com.amakakeru.devtalk.model.UserAccount;
+import com.amakakeru.devtalk.model.User;
 import org.springframework.data.mongodb.repository.MongoRepository;
+import org.springframework.stereotype.Repository;
 
-import java.util.Optional;
+@Repository
+public interface UserRepository extends MongoRepository<User, String> {
+	User findByEmail(String email);
 
-public interface UserRepository extends MongoRepository<UserAccount, String> {
-    Optional<UserAccount> findByEmail(String email);
+	User findByUsername(String username);
 }

@@ -1,6 +1,10 @@
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
-import RoutingPage from "./routes/RoutingPage.tsx";
+import RoutingPage from "./routes/RoutingPage";
 import Homepage from "./components/Homepage/Homepage.tsx";
+import { AuthProvider } from "./contexts/AuthContext";
+import "./app.css";
+import Signup from "./components/AuthPage/Signup.tsx";
+import Login from "./components/AuthPage/Login.tsx";
 
 function App() {
 	const router = createBrowserRouter([
@@ -12,11 +16,23 @@ function App() {
 					path: "/",
 					element: <Homepage />,
 				},
+				{
+					path: "/signup",
+					element: <Signup />,
+				},
+				{
+					path: "/login",
+					element: <Login />,
+				},
 			],
 		},
 	]);
 
-	return <RouterProvider router={router}></RouterProvider>;
+	return (
+		<AuthProvider>
+			<RouterProvider router={router} />
+		</AuthProvider>
+	);
 }
 
 export default App;

@@ -11,6 +11,7 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.util.Collections;
+import java.util.Date;
 import java.util.Set;
 
 @Data
@@ -18,8 +19,7 @@ import java.util.Set;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class UserAccount {
-
+public class User {
     @Id
     private String id;
 
@@ -39,8 +39,24 @@ public class UserAccount {
     @Size(min = 6, max = 40, message = "Password should be between 6 and 40 characters")
     private String password;
 
-    @NotBlank(message = "Role is required")
+    @NotBlank(message = "Date of birth is required")
+    private Date dob;
+
+    private String profilePicture;
+
+    @Size(max = 200, message = "Bio should be less than 200 characters")
+    private String bio;
+
+    @Builder.Default
+    private boolean isBanned = false;
+
+    private Date banUntil;
+
+    private Date createdAt;
+
+    @Builder.Default
+    private boolean isEmailVerified = false;
+
     @Builder.Default
     private Set<Role> roles = Collections.singleton(Role.USER);
-
 }
