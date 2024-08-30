@@ -3,8 +3,16 @@ import { checkUsername, register } from "../../api/AuthAPI.ts";
 import { successMessageService } from "../../contexts/SuccessMessageService.ts";
 import { useNavigate } from "react-router-dom";
 import { StatusCodes } from "http-status-codes";
-import { useAuth } from "../../contexts/AuthContext.tsx";
 import FullScreenLoading from "../utils/FullScreenLoading.tsx";
+import {
+	CalendarOutlined,
+	EyeInvisibleOutlined,
+	EyeTwoTone,
+	LockOutlined,
+	MailOutlined,
+	UserOutlined,
+} from "@ant-design/icons";
+import { motion } from "framer-motion";
 
 interface SignupFormInputs {
 	email: string;
@@ -23,8 +31,8 @@ const Signup: React.FC = () => {
 		dob: "",
 	});
 	const navigate = useNavigate();
-	const { setJWT } = useAuth();
 	const [isFullscreenLoading, setIsFullscreenLoading] = useState(false);
+	const [showPassword, setShowPassword] = useState(false);
 
 	useEffect(() => {
 		const checkUsernameCall = async () => {
@@ -42,6 +50,7 @@ const Signup: React.FC = () => {
 						username: "",
 					});
 				}
+				setServerError("");
 			} catch (error) {
 				setServerError("An error occurred during fetching.");
 			}
@@ -111,9 +120,8 @@ const Signup: React.FC = () => {
 			setIsFullscreenLoading(true);
 			const response = await register(formData);
 			if (response.status === StatusCodes.CREATED) {
-				successMessageService.successMessage("Signup successful");
-				setJWT(response.data);
-				navigate("/");
+				successMessageService.successMessage(response.data);
+				navigate("/email-sent/" + formData.email);
 			} else if (response.data) {
 				setServerError(response.data);
 			} else {
@@ -123,32 +131,37 @@ const Signup: React.FC = () => {
 		}
 	};
 
+	const togglePasswordVisibility = () => {
+		setShowPassword((prev) => !prev);
+	};
+
 	return (
-		<div className=" flex items-center justify-center h-[calc(100vh-3.75rem)] px-4">
+		<div className="flex items-center justify-center h-[calc(100vh-3.75rem)] px-4 select-none">
 			<FullScreenLoading isFullscreenLoading={isFullscreenLoading} />
-			<form
+			<motion.form
 				onSubmit={handleSubmit}
-				className="bg-gray-800 p-8 rounded-lg shadow-lg w-full max-w-md"
+				className="bg-gray-800 p-8 rounded-lg w-full max-w-md relative"
+				initial={{ opacity: 0, y: 50 }}
+				animate={{ opacity: 1, y: 0 }}
+				transition={{ duration: 0.5 }}
 			>
 				<h2 className="text-2xl font-bold mb-6 text-white text-center">
 					Signup
 				</h2>
 
 				<div className="mb-4">
-					<label
-						className="block text-sm font-medium text-gray-300"
-						htmlFor="email"
-					>
-						Email
-					</label>
-					<input
-						id="email"
-						name="email"
-						value={formData.email}
-						onChange={handleInputChange}
-						className="mt-1 w-full px-3 py-2 bg-gray-700 border border-gray-600 text-white rounded focus:outline-none focus:border-indigo-500"
-						type="email"
-					/>
+					<div className="flex items-center space-x-2 bg-gray-700 border border-gray-600 rounded">
+						<MailOutlined className="text-gray-400 px-3" />
+						<input
+							id="email"
+							name="email"
+							value={formData.email}
+							onChange={handleInputChange}
+							className="w-full py-2 bg-transparent text-white rounded focus:outline-none focus:border-indigo-500"
+							type="email"
+							placeholder="Email"
+						/>
+					</div>
 					{errors.email && (
 						<p className="text-red-500 text-xs mt-1">
 							{errors.email}
@@ -157,20 +170,18 @@ const Signup: React.FC = () => {
 				</div>
 
 				<div className="mb-4">
-					<label
-						className="block text-sm font-medium text-gray-300"
-						htmlFor="username"
-					>
-						Username
-					</label>
-					<input
-						id="username"
-						name="username"
-						value={formData.username}
-						onChange={handleInputChange}
-						className="mt-1 w-full px-3 py-2 bg-gray-700 border border-gray-600 text-white rounded focus:outline-none focus:border-indigo-500"
-						type="text"
-					/>
+					<div className="flex items-center space-x-2 bg-gray-700 border border-gray-600 rounded">
+						<UserOutlined className="text-gray-400 px-3" />
+						<input
+							id="username"
+							name="username"
+							value={formData.username}
+							onChange={handleInputChange}
+							className="w-full py-2 bg-transparent text-white rounded focus:outline-none focus:border-indigo-500"
+							type="text"
+							placeholder="Username"
+						/>
+					</div>
 					{errors.username && (
 						<p className="text-red-500 text-xs mt-1">
 							{errors.username}
@@ -179,20 +190,18 @@ const Signup: React.FC = () => {
 				</div>
 
 				<div className="mb-4">
-					<label
-						className="block text-sm font-medium text-gray-300"
-						htmlFor="name"
-					>
-						Name
-					</label>
-					<input
-						id="name"
-						name="name"
-						value={formData.name}
-						onChange={handleInputChange}
-						className="mt-1 w-full px-3 py-2 bg-gray-700 border border-gray-600 text-white rounded focus:outline-none focus:border-indigo-500"
-						type="text"
-					/>
+					<div className="flex items-center space-x-2 bg-gray-700 border border-gray-600 rounded">
+						<UserOutlined className="text-gray-400 px-3" />
+						<input
+							id="name"
+							name="name"
+							value={formData.name}
+							onChange={handleInputChange}
+							className="w-full py-2 bg-transparent text-white rounded focus:outline-none focus:border-indigo-500"
+							type="text"
+							placeholder="Name"
+						/>
+					</div>
 					{errors.name && (
 						<p className="text-red-500 text-xs mt-1">
 							{errors.name}
@@ -201,20 +210,30 @@ const Signup: React.FC = () => {
 				</div>
 
 				<div className="mb-4">
-					<label
-						className="block text-sm font-medium text-gray-300"
-						htmlFor="password"
-					>
-						Password
-					</label>
-					<input
-						id="password"
-						name="password"
-						value={formData.password}
-						onChange={handleInputChange}
-						className="mt-1 w-full px-3 py-2 bg-gray-700 border border-gray-600 text-white rounded focus:outline-none focus:border-indigo-500"
-						type="password"
-					/>
+					<div className="flex items-center space-x-2 bg-gray-700 border border-gray-600 rounded">
+						<LockOutlined className="text-gray-400 px-3" />
+						<div className="relative w-full">
+							<input
+								id="password"
+								name="password"
+								value={formData.password}
+								onChange={handleInputChange}
+								className="w-full py-2 bg-transparent text-white rounded focus:outline-none focus:border-indigo-500"
+								type={showPassword ? "text" : "password"}
+								placeholder="Password"
+							/>
+							<div
+								className="absolute inset-y-0 right-0 pr-3 flex items-center cursor-pointer"
+								onClick={togglePasswordVisibility}
+							>
+								{showPassword ? (
+									<EyeTwoTone className="text-gray-400" />
+								) : (
+									<EyeInvisibleOutlined className="text-gray-400" />
+								)}
+							</div>
+						</div>
+					</div>
 					{errors.password && (
 						<p className="text-red-500 text-xs mt-1">
 							{errors.password}
@@ -223,20 +242,17 @@ const Signup: React.FC = () => {
 				</div>
 
 				<div className="mb-4">
-					<label
-						className="block text-sm font-medium text-gray-300"
-						htmlFor="dob"
-					>
-						Date of Birth
-					</label>
-					<input
-						id="dob"
-						name="dob"
-						value={formData.dob}
-						onChange={handleInputChange}
-						className="mt-1 w-full px-3 py-2 bg-gray-700 border border-gray-600 text-white rounded focus:outline-none focus:border-indigo-500"
-						type="date"
-					/>
+					<div className="flex items-center space-x-2 bg-gray-700 border border-gray-600 rounded">
+						<CalendarOutlined className="text-gray-400 px-3" />
+						<input
+							id="dob"
+							name="dob"
+							value={formData.dob}
+							onChange={handleInputChange}
+							className="w-full py-2 bg-transparent text-white rounded focus:outline-none focus:border-indigo-500"
+							type="date"
+						/>
+					</div>
 					{errors.dob && (
 						<p className="text-red-500 text-xs mt-1">
 							{errors.dob}
@@ -244,27 +260,31 @@ const Signup: React.FC = () => {
 					)}
 				</div>
 
-				<button
-					type="submit"
-					className="w-full bg-indigo-500 hover:bg-indigo-600 text-white py-2 px-4 rounded focus:outline-none focus:bg-indigo-600 transition-colors duration-300"
-				>
-					Signup
-				</button>
 				{serverError && (
-					<p className="text-red-500 text-center mt-4">
+					<p className="text-red-500 text-center mb-4">
 						{serverError}
 					</p>
 				)}
 
-				<div className="mt-2">
-					<div
-						className="text-indigo-400 hover:underline cursor-pointer"
-						onClick={() => navigate("/login")}
-					>
-						Or, Log in
+				<button
+					type="submit"
+					className="bg-indigo-600 text-white py-2 px-4 rounded w-full hover:bg-indigo-500 transition"
+				>
+					Signup
+				</button>
+
+				<div className="mt-4">
+					<div className="text-indigo-400 text-center">
+						Already have an account?{" "}
+						<span
+							className="text-indigo-500 hover:underline cursor-pointer"
+							onClick={() => navigate("/login")}
+						>
+							Login
+						</span>
 					</div>
 				</div>
-			</form>
+			</motion.form>
 		</div>
 	);
 };

@@ -1,12 +1,16 @@
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import RoutingPage from "./routes/RoutingPage";
 import Homepage from "./components/Homepage/Homepage.tsx";
-import { AuthProvider } from "./contexts/AuthContext";
+import { useAuth } from "./contexts/AuthContext";
 import "./app.css";
 import Signup from "./components/AuthPage/Signup.tsx";
 import Login from "./components/AuthPage/Login.tsx";
+import EmailSentPage from "./components/AuthPage/EmailSentPage.tsx";
+import NotFound from "./components/utils/NotFound.tsx";
+import VerifyEmail from "./components/AuthPage/VerifyEmail.tsx";
 
 function App() {
+	const { isLoggedIn } = useAuth();
 	const router = createBrowserRouter([
 		{
 			path: "/",
@@ -18,21 +22,29 @@ function App() {
 				},
 				{
 					path: "/signup",
-					element: <Signup />,
+					element: !isLoggedIn() ? <Signup /> : <Homepage />,
 				},
 				{
 					path: "/login",
-					element: <Login />,
+					element: !isLoggedIn() ? <Login /> : <Homepage />,
+				},
+				{
+					path: "/email-sent/:email",
+					element: !isLoggedIn() ? <EmailSentPage /> : <Homepage />,
+				},
+				{
+					path: "/VerifyEmail/:token",
+					element: !isLoggedIn() ? <VerifyEmail /> : <Homepage />,
+				},
+				{
+					path: "*",
+					element: <NotFound />,
 				},
 			],
 		},
 	]);
 
-	return (
-		<AuthProvider>
-			<RouterProvider router={router} />
-		</AuthProvider>
-	);
+	return <RouterProvider router={router} />;
 }
 
 export default App;

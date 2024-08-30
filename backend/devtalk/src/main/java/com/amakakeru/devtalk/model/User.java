@@ -20,43 +20,47 @@ import java.util.Set;
 @AllArgsConstructor
 @Builder
 public class User {
-    @Id
-    private String id;
+	@Id
+	private String id;
 
-    @NotBlank(message = "Email is required")
-    @Email(message = "Email should be valid")
-    private String email;
+	@NotBlank(message = "Email is required")
+	@Email(message = "Email should be valid")
+	private String email;
 
-    @NotBlank(message = "Username is required")
-    @Size(min = 3, max = 20, message = "Username should be between 3 and 20 characters")
-    private String username;
+	@NotBlank(message = "Username is required")
+	@Size(min = 3, max = 20, message = "Username should be between 3 and 20 characters")
+	private String username;
 
-    @NotBlank(message = "Name is required")
-    @Size(min = 3, max = 50, message = "Name should be between 3 and 50 characters")
-    private String name;
+	@NotBlank(message = "Name is required")
+	@Size(min = 3, max = 50, message = "Name should be between 3 and 50 characters")
+	private String name;
 
-    @NotBlank(message = "Password is required")
-    @Size(min = 6, max = 40, message = "Password should be between 6 and 40 characters")
-    private String password;
+	@NotBlank(message = "Password is required")
+	@Size(min = 6, max = 40, message = "Password should be between 6 and 40 characters")
+	private String password;
 
-    @NotBlank(message = "Date of birth is required")
-    private Date dob;
+	@NotBlank(message = "Date of birth is required")
+	private Date dob;
 
-    private String profilePicture;
+	private String profilePicture;
 
-    @Size(max = 200, message = "Bio should be less than 200 characters")
-    private String bio;
+	@Size(max = 200, message = "Bio should be less than 200 characters")
+	private String bio;
 
-    @Builder.Default
-    private boolean isBanned = false;
+	@Builder.Default
+	private boolean isBanned = false;
 
-    private Date banUntil;
+	private Date banUntil;
 
-    private Date createdAt;
+	private Date createdAt;
 
-    @Builder.Default
-    private boolean isEmailVerified = false;
+	@Builder.Default
+	private boolean isEmailVerified = false;
 
-    @Builder.Default
-    private Set<Role> roles = Collections.singleton(Role.USER);
+	@Builder.Default
+	private Set<Role> roles = Collections.singleton(Role.USER);
+
+	public boolean getIsEmailVerified() {
+		return isEmailVerified;
+	}
 }

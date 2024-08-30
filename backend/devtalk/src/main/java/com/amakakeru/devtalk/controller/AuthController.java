@@ -3,6 +3,8 @@ package com.amakakeru.devtalk.controller;
 import com.amakakeru.devtalk.config.JWTService;
 import com.amakakeru.devtalk.model.User;
 import com.amakakeru.devtalk.repository.UserRepository;
+import com.amakakeru.devtalk.service.EmailService;
+import com.amakakeru.devtalk.service.VerificationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -25,6 +27,10 @@ public class AuthController {
 	AuthenticationManager authenticationManager;
 	@Autowired
 	private JWTService jwtService;
+	@Autowired
+	private VerificationService verificationService;
+	@Autowired
+	private EmailService emailService;
 
 	@GetMapping("/checkUsername/{username}")
 	public ResponseEntity<Boolean> checkUsername(@PathVariable String username) {
@@ -39,6 +45,15 @@ public class AuthController {
 			);
 			if (authentication.isAuthenticated()) {
 				User userFetched = userRepository.findByEmail(user.getEmail());
+				if (!userFetched.getIsEmailVerified()) {
+					try {
+						emailService.sendVerificationEmail(userFetched);
+					} catch (Exception e) {
+						return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+								.body("An error occurred while registering user");
+					}
+					return ResponseEntity.status(HttpStatus.FAILED_DEPENDENCY).body("Email not verified");
+				}
 				String token = jwtService.generateToken(userFetched);
 				return ResponseEntity.ok(token);
 			}
@@ -75,12 +90,41 @@ public class AuthController {
 					.body("All fields are required");
 		}
 
-		user.setPassword(encoder.encode(user.getPassword()));
-
-		User savedUser = userRepository.save(user);
-		String token = jwtService.generateToken(savedUser);
+		try {
+			user.setPassword(encoder.encode(user.getPassword()));
+			User savedUser = userRepository.save(user);
+			emailService.sendVerificationEmail(savedUser);
+		} catch (Exception e) {
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+					.body("An error occurred while registering user");
+		}
 
 		return ResponseEntity.status(HttpStatus.CREATED)
-				.body(token);
+				.body("User registered successfully");
+	}
+
+	@GetMapping("/verifyEmail/{token}")
+	public ResponseEntity<?> verifyEmail(@PathVariable String token) {
+		if (token == null || token.isEmpty()) {
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+					.body("Token is required");
+		}
+		if (verificationService.verifyToken(token)) {
+			String email = jwtService.extractEmail(token);
+			User user = userRepository.findByEmail(email);
+			if (user == null) {
+				return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+						.body("Invalid token. Please provide a valid token");
+			}
+			if (user.getIsEmailVerified()) {
+				return ResponseEntity.status(HttpStatus.CONFLICT)
+						.body("Email already verified");
+			}
+			user.setEmailVerified(true);
+			userRepository.save(user);
+			return ResponseEntity.ok("Email verified successfully");
+		}
+		return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+				.body("Invalid token. Please provide a valid token");
 	}
 }
