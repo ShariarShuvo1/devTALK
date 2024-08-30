@@ -127,4 +127,49 @@ public class AuthController {
 		return ResponseEntity.status(HttpStatus.BAD_REQUEST)
 				.body("Invalid token. Please provide a valid token");
 	}
+
+	@GetMapping("/passwordReset/{email}")
+	public ResponseEntity<?> passwordReset(@PathVariable String email) {
+		if (email == null || email.isEmpty()) {
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+					.body("Email is required");
+		}
+		User user = userRepository.findByEmail(email);
+		if (user == null) {
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+					.body("User not found. Please provide a valid email");
+		}
+		try {
+			emailService.sendPasswordResetEmail(user);
+		} catch (Exception e) {
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+					.body("An error occurred while sending password reset email");
+		}
+		return ResponseEntity.ok("Password reset email sent successfully");
+	}
+
+	@PostMapping("/passwordReset/{token}")
+	public ResponseEntity<?> resetPassword(@PathVariable String token, @RequestBody User user) {
+		if (token == null || token.isEmpty()) {
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+					.body("Token is required");
+		}
+		if (user.getPassword() == null || user.getPassword().isEmpty()) {
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+					.body("Password is required");
+		}
+		if (verificationService.verifyToken(token)) {
+			String email = jwtService.extractEmail(token);
+			User userFetched = userRepository.findByEmail(email);
+			if (userFetched == null) {
+				return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+						.body("Invalid token. Please provide a valid token");
+			}
+			userFetched.setPassword(encoder.encode(user.getPassword()));
+			userRepository.save(userFetched);
+			return ResponseEntity.ok("Password reset successfully. Please login with your new password");
+		}
+		return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+				.body("Invalid token. Please provide a valid token");
+	}
 }

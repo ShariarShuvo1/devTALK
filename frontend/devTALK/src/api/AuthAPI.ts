@@ -13,6 +13,21 @@ export const verifyEmail = async (token: string): Promise<any> => {
 	});
 };
 
+export const passwordReset = async (email: string): Promise<any> => {
+	return await axios.get(`${BASE_URL}/passwordReset/${email}`, {
+		validateStatus: () => true,
+	});
+};
+
+export const passwordResetPost = async (
+	token: string,
+	body: any,
+): Promise<any> => {
+	return await axios.post(`${BASE_URL}/passwordReset/${token}`, body, {
+		validateStatus: () => true,
+	});
+};
+
 export const register = async (body: any): Promise<any> => {
 	return await axios.post(`${BASE_URL}/register`, body, {
 		validateStatus: () => true,

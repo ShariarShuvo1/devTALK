@@ -10,6 +10,7 @@ import {
 	EyeTwoTone,
 	LockOutlined,
 	MailOutlined,
+	SignatureOutlined,
 	UserOutlined,
 } from "@ant-design/icons";
 import { motion } from "framer-motion";
@@ -171,7 +172,7 @@ const Signup: React.FC = () => {
 
 				<div className="mb-4">
 					<div className="flex items-center space-x-2 bg-gray-700 border border-gray-600 rounded">
-						<UserOutlined className="text-gray-400 px-3" />
+						<SignatureOutlined className="text-gray-400 px-3" />
 						<input
 							id="username"
 							name="username"

@@ -109,12 +109,10 @@ const Login: React.FC = () => {
 						type="email"
 						placeholder="Email"
 					/>
-					{errors.email && (
-						<p className="text-red-500 text-xs mt-1">
-							{errors.email}
-						</p>
-					)}
 				</div>
+				{errors.email && (
+					<p className="text-red-500 text-xs mb-4">{errors.email}</p>
+				)}
 
 				<div className="mb-4 relative">
 					<LockOutlined className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
@@ -137,12 +135,12 @@ const Login: React.FC = () => {
 							<EyeInvisibleOutlined className="text-gray-400" />
 						)}
 					</div>
-					{errors.password && (
-						<p className="text-red-500 text-xs mt-1">
-							{errors.password}
-						</p>
-					)}
 				</div>
+				{errors.password && (
+					<p className="text-red-500 text-xs mb-4">
+						{errors.password}
+					</p>
+				)}
 
 				<button
 					type="submit"

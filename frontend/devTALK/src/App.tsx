@@ -8,6 +8,8 @@ import Login from "./components/AuthPage/Login.tsx";
 import EmailSentPage from "./components/AuthPage/EmailSentPage.tsx";
 import NotFound from "./components/utils/NotFound.tsx";
 import VerifyEmail from "./components/AuthPage/VerifyEmail.tsx";
+import ForgotPassword from "./components/AuthPage/ForgotPassword.tsx";
+import ResetPassword from "./components/AuthPage/ResetPassword.tsx";
 
 function App() {
 	const { isLoggedIn } = useAuth();
@@ -35,6 +37,14 @@ function App() {
 				{
 					path: "/VerifyEmail/:token",
 					element: !isLoggedIn() ? <VerifyEmail /> : <Homepage />,
+				},
+				{
+					path: "/resetPassword/:token",
+					element: !isLoggedIn() ? <ResetPassword /> : <Homepage />,
+				},
+				{
+					path: "/forgot-password",
+					element: !isLoggedIn() ? <ForgotPassword /> : <Homepage />,
 				},
 				{
 					path: "*",

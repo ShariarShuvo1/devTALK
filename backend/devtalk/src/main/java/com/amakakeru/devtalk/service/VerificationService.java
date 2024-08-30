@@ -18,7 +18,6 @@ public class VerificationService {
 	public boolean verifyToken(String token) {
 		String username = jwtService.extractUserName(token);
 		String email = jwtService.extractEmail(token);
-
 		if (username != null && email != null) {
 			UserDetails userDetails = context.getBean(CustomUserDetailsService.class).loadUserByUsername(email);
 			return jwtService.validateVerificationToken(token, userDetails);
