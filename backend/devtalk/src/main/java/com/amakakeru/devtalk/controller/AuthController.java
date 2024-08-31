@@ -15,6 +15,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
 
 @RestController
@@ -55,7 +57,13 @@ public class AuthController {
 					return ResponseEntity.status(HttpStatus.FAILED_DEPENDENCY).body("Email not verified");
 				}
 				String token = jwtService.generateToken(userFetched);
-				return ResponseEntity.ok(token);
+				boolean hasProfilePicture = userFetched.getProfilePicture() != null;
+
+				Map<String, Object> response = new HashMap<>();
+				response.put("token", token);
+				response.put("hasProfilePicture", hasProfilePicture);
+
+				return ResponseEntity.ok(response);
 			}
 
 			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid credentials");

@@ -51,14 +51,9 @@ function ResetPassword() {
 			if (response.status === StatusCodes.OK) {
 				successMessageService.successMessage(response.data);
 				navigate("/login");
-			} else if (response.status === StatusCodes.BAD_REQUEST) {
+			} else {
 				errorMessageService.errorMessage(response.data);
 				setError(response.data);
-			} else {
-				errorMessageService.errorMessage(
-					"Something went wrong. Please try again.",
-				);
-				setError("Something went wrong. Please try again.");
 			}
 
 			setIsFullscreenLoading(false);

@@ -123,10 +123,8 @@ const Signup: React.FC = () => {
 			if (response.status === StatusCodes.CREATED) {
 				successMessageService.successMessage(response.data);
 				navigate("/email-sent/" + formData.email);
-			} else if (response.data) {
-				setServerError(response.data);
 			} else {
-				setServerError("An error occurred during signup.");
+				setServerError(response.data);
 			}
 			setIsFullscreenLoading(false);
 		}

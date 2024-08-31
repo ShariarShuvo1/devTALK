@@ -28,24 +28,16 @@ function VerifyEmail() {
 		} else {
 			const CheckToken = async () => {
 				setIsFullscreenLoading(true);
-				try {
-					const response = await verifyEmail(token);
-					if (
-						response.status === StatusCodes.OK ||
-						response.status == StatusCodes.CONFLICT
-					) {
-						successMessageService.successMessage(response.data);
-						setSuccess(response.data);
-					} else if (response.status == StatusCodes.BAD_REQUEST) {
-						errorMessageService.errorMessage(response.data);
-						setError(response.data);
-					} else {
-						setError(
-							"Invalid token. Please provide a valid token.",
-						);
-					}
-				} catch (error) {
-					setError("An error occurred. Please try again later.");
+				const response = await verifyEmail(token);
+				if (
+					response.status === StatusCodes.OK ||
+					response.status == StatusCodes.CONFLICT
+				) {
+					successMessageService.successMessage(response.data);
+					setSuccess(response.data);
+				} else {
+					errorMessageService.errorMessage(response.data);
+					setError(response.data);
 				}
 
 				setIsFullscreenLoading(false);

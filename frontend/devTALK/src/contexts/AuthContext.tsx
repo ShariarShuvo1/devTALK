@@ -1,18 +1,25 @@
-import React, { createContext, useContext, ReactNode, useState } from "react";
+import React, {
+	createContext,
+	useContext,
+	ReactNode,
+	useState,
+	useEffect,
+} from "react";
 import { jwtDecode } from "jwt-decode";
 
 interface JwtPayload {
 	exp: number;
-	username: string;
+	sub: string;
 	roles: string[];
 }
 
 interface AuthContextType {
-	isLoggedIn: () => boolean;
+	isLoggedIn: boolean;
 	getRoles: () => string[];
-	getUsername: () => string | null;
+	getUsername: string | null;
 	getExpiration: () => number | null;
 	getJWT: () => JwtPayload | null;
+	getJwtString: () => string | null; // New method
 	setJWT: (jwtString: string) => void;
 	logout: () => void;
 }
@@ -33,16 +40,27 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
 }) => {
 	const [jwt, setJwtState] = useState<JwtPayload | null>(getJwt());
 
-	const isLoggedIn = () => {
-		return jwt !== null && !isJwtExpired(jwt.exp);
-	};
+	const [isLoggedIn, setIsLoggedIn] = useState<boolean>(() => {
+		const token = getJwt();
+		return token !== null && !isJwtExpired(token.exp);
+	});
+	const [username, setUsername] = useState<string | null>(() => {
+		const token = getJwt();
+		return token?.sub || null;
+	});
+
+	useEffect(() => {
+		if (jwt) {
+			setIsLoggedIn(!isJwtExpired(jwt.exp));
+			setUsername(jwt.sub);
+		} else {
+			setIsLoggedIn(false);
+			setUsername(null);
+		}
+	}, [jwt]);
 
 	const getRoles = () => {
 		return jwt?.roles || [];
-	};
-
-	const getUsername = () => {
-		return jwt?.username || null;
 	};
 
 	const getExpiration = () => {
@@ -51,6 +69,10 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
 
 	const getJWT = () => {
 		return jwt;
+	};
+
+	const getJwtString = () => {
+		return localStorage.getItem("jwt");
 	};
 
 	const setJWT = (jwtString: string) => {
@@ -62,14 +84,17 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
 	const logout = () => {
 		localStorage.removeItem("jwt");
 		setJwtState(null);
+		setIsLoggedIn(false);
+		setUsername(null);
 	};
 
 	const value = {
 		isLoggedIn,
 		getRoles,
-		getUsername,
+		getUsername: username,
 		getExpiration,
 		getJWT,
+		getJwtString,
 		setJWT,
 		logout,
 	};

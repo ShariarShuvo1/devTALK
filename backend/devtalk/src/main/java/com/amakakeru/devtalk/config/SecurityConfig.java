@@ -36,6 +36,8 @@ public class SecurityConfig {
 		return http.csrf(AbstractHttpConfigurer::disable).
 				authorizeHttpRequests(request -> request
 						.requestMatchers("/login", "/register", "/checkUsername/**", "/verifyEmail/**", "/passwordReset/**").permitAll()
+						.requestMatchers("/user/getProfilePicture/**").permitAll()
+						.requestMatchers("/profilePicture/**").permitAll()
 						.anyRequest().authenticated()).
 				httpBasic(Customizer.withDefaults()).
 				sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))

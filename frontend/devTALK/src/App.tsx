@@ -10,6 +10,7 @@ import NotFound from "./components/utils/NotFound.tsx";
 import VerifyEmail from "./components/AuthPage/VerifyEmail.tsx";
 import ForgotPassword from "./components/AuthPage/ForgotPassword.tsx";
 import ResetPassword from "./components/AuthPage/ResetPassword.tsx";
+import ProfilePictureSetup from "./components/AuthPage/ProfilePictureSetup.tsx";
 
 function App() {
 	const { isLoggedIn } = useAuth();
@@ -24,27 +25,35 @@ function App() {
 				},
 				{
 					path: "/signup",
-					element: !isLoggedIn() ? <Signup /> : <Homepage />,
+					element: !isLoggedIn ? <Signup /> : <Homepage />,
 				},
 				{
 					path: "/login",
-					element: !isLoggedIn() ? <Login /> : <Homepage />,
+					element: !isLoggedIn ? <Login /> : <Homepage />,
 				},
 				{
 					path: "/email-sent/:email",
-					element: !isLoggedIn() ? <EmailSentPage /> : <Homepage />,
+					element: !isLoggedIn ? <EmailSentPage /> : <Homepage />,
 				},
 				{
 					path: "/VerifyEmail/:token",
-					element: !isLoggedIn() ? <VerifyEmail /> : <Homepage />,
+					element: !isLoggedIn ? <VerifyEmail /> : <Homepage />,
+				},
+				{
+					path: "/updateProfilePicture",
+					element: isLoggedIn ? (
+						<ProfilePictureSetup />
+					) : (
+						<Homepage />
+					),
 				},
 				{
 					path: "/resetPassword/:token",
-					element: !isLoggedIn() ? <ResetPassword /> : <Homepage />,
+					element: !isLoggedIn ? <ResetPassword /> : <Homepage />,
 				},
 				{
 					path: "/forgot-password",
-					element: !isLoggedIn() ? <ForgotPassword /> : <Homepage />,
+					element: !isLoggedIn ? <ForgotPassword /> : <Homepage />,
 				},
 				{
 					path: "*",

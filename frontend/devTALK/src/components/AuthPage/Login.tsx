@@ -65,16 +65,18 @@ const Login: React.FC = () => {
 			setIsFullscreenLoading(true);
 			const response = await login(formData);
 			if (response.status === StatusCodes.OK) {
-				setJWT(response.data);
+				setJWT(response.data.token);
 				successMessageService.successMessage("Login successful");
-				navigate("/");
+				if (response.data.hasProfilePicture) {
+					navigate("/");
+				} else {
+					navigate("/updateProfilePicture");
+				}
 			} else if (response.status === StatusCodes.FAILED_DEPENDENCY) {
 				errorMessageService.errorMessage(response.data);
 				navigate("/email-sent/" + formData.email);
-			} else if (response.data) {
-				setServerError(response.data);
 			} else {
-				setServerError("An error occurred during login.");
+				setServerError(response.data);
 			}
 			setIsFullscreenLoading(false);
 		}

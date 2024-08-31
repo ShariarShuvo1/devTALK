@@ -34,12 +34,9 @@ function ForgotPassword() {
 			if (response.status === StatusCodes.OK) {
 				successMessageService.successMessage(response.data);
 				navigate("/email-sent/" + email);
-			} else if (response.status === StatusCodes.BAD_REQUEST) {
+			} else {
 				errorMessageService.errorMessage(response.data);
 				setError(response.data);
-			} else {
-				errorMessageService.errorMessage("Something went wrong");
-				setError("Something went wrong");
 			}
 			setIsFullscreenLoading(false);
 		}
