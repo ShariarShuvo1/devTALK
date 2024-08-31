@@ -5,9 +5,10 @@ import { useAuth } from "../../contexts/AuthContext.tsx";
 import { successMessageService } from "../../contexts/SuccessMessageService.ts";
 import { getProfilePicture } from "../../api/UserAPI.ts";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faUserCircle } from "@fortawesome/free-solid-svg-icons";
+import { faUserCircle, faLink } from "@fortawesome/free-solid-svg-icons";
 import { errorMessageService } from "../../contexts/ErrorMessageService.ts";
 import { StatusCodes } from "http-status-codes";
+import { Tooltip } from "antd";
 
 const Header: React.FC = () => {
 	const [open, setOpen] = useState<boolean>(false);
@@ -124,6 +125,29 @@ const Header: React.FC = () => {
 									/>
 								)}
 								<div className="ms-2">{getUsername}</div>
+							</li>
+							<li
+								className="md:ml-8 md:my-0 my-7 cursor-pointer flex items-center text-gray-200 hover:text-gray-400 duration-500 hover:opacity-80"
+								onClick={() => {
+									navigate("/connections");
+									setOpen(false);
+								}}
+							>
+								<Tooltip
+									title={!open && `Connections`}
+									placement="bottom"
+									color="geekblue"
+								>
+									<FontAwesomeIcon
+										icon={faLink}
+										className="text-2xl"
+									/>
+								</Tooltip>
+								{open && (
+									<div className="ms-2 text-xl">
+										Connections
+									</div>
+								)}
 							</li>
 							<li
 								className="md:ml-8 text-xl md:my-0 my-7 cursor-pointer"

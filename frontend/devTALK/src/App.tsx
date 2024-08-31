@@ -11,6 +11,7 @@ import VerifyEmail from "./components/AuthPage/VerifyEmail.tsx";
 import ForgotPassword from "./components/AuthPage/ForgotPassword.tsx";
 import ResetPassword from "./components/AuthPage/ResetPassword.tsx";
 import ProfilePictureSetup from "./components/AuthPage/ProfilePictureSetup.tsx";
+import Connections from "./components/Connections/Connections.tsx";
 
 function App() {
 	const { isLoggedIn } = useAuth();
@@ -46,6 +47,10 @@ function App() {
 					) : (
 						<Homepage />
 					),
+				},
+				{
+					path: "/connections",
+					element: isLoggedIn ? <Connections /> : <Homepage />,
 				},
 				{
 					path: "/resetPassword/:token",
