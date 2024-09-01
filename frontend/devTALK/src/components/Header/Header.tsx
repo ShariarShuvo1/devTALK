@@ -1,37 +1,39 @@
 import React, { useEffect, useState } from "react";
 import { Bars3Icon, BarsArrowUpIcon } from "@heroicons/react/24/solid";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext.tsx";
 import { successMessageService } from "../../contexts/SuccessMessageService.ts";
-import { getProfilePicture } from "../../api/UserAPI.ts";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faUserCircle, faLink } from "@fortawesome/free-solid-svg-icons";
 import { errorMessageService } from "../../contexts/ErrorMessageService.ts";
 import { StatusCodes } from "http-status-codes";
-import { Tooltip } from "antd";
+import { Badge, Tooltip } from "antd";
+import { getHeaderInfo } from "../../api/HeaderAPI.ts";
+import { HeaderDTO } from "../../DTO/HeaderDTO.ts";
 
 const Header: React.FC = () => {
 	const [open, setOpen] = useState<boolean>(false);
 	const navigate = useNavigate();
 	const { isLoggedIn, logout, getUsername } = useAuth();
-	const [profilePicture, setProfilePicture] = useState<string | null>(null);
+	const [headerInfo, setHeaderInfo] = useState<HeaderDTO | null>(null);
+	const location = useLocation();
 
 	useEffect(() => {
 		if (!isLoggedIn) {
-			setProfilePicture(null);
+			setHeaderInfo(null);
 		}
-		if (isLoggedIn && getUsername && !profilePicture) {
+		if (isLoggedIn && getUsername) {
 			const fetchProfilePicture = async () => {
-				const response = await getProfilePicture(getUsername);
+				const response = await getHeaderInfo();
 				if (response.status === StatusCodes.OK) {
-					setProfilePicture(response.data);
+					setHeaderInfo(response.data);
 				} else if (response.status === StatusCodes.BAD_REQUEST) {
 					errorMessageService.errorMessage(response.data);
 				}
 			};
 			fetchProfilePicture();
 		}
-	}, [isLoggedIn, getUsername]);
+	}, [isLoggedIn, getUsername, location]);
 
 	return (
 		<div className="shadow-md w-full fixed top-0 left-0">
@@ -112,9 +114,9 @@ const Header: React.FC = () => {
 									setOpen(false);
 								}}
 							>
-								{profilePicture ? (
+								{headerInfo ? (
 									<img
-										src={profilePicture}
+										src={headerInfo.profilePicture}
 										alt="Profile"
 										className="h-8 w-8 rounded-full object-cover"
 									/>
@@ -129,7 +131,12 @@ const Header: React.FC = () => {
 							<li
 								className="md:ml-8 md:my-0 my-7 cursor-pointer flex items-center text-gray-200 hover:text-gray-400 duration-500 hover:opacity-80"
 								onClick={() => {
-									navigate("/connections");
+									headerInfo &&
+									headerInfo.totalPendingConnections === 0
+										? navigate(
+												"/connections/my-connections",
+											)
+										: navigate("/connections/requests");
 									setOpen(false);
 								}}
 							>
@@ -138,10 +145,20 @@ const Header: React.FC = () => {
 									placement="bottom"
 									color="geekblue"
 								>
-									<FontAwesomeIcon
-										icon={faLink}
-										className="text-2xl"
-									/>
+									<Badge
+										count={
+											headerInfo?.totalPendingConnections ||
+											0
+										}
+										size="small"
+										title={`You have ${headerInfo?.totalPendingConnections} connection requests`}
+										color="green"
+									>
+										<FontAwesomeIcon
+											icon={faLink}
+											className="text-xl text-white bg-gray-600 p-2 rounded-full"
+										/>
+									</Badge>
 								</Tooltip>
 								{open && (
 									<div className="ms-2 text-xl">

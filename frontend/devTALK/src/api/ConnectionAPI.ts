@@ -2,8 +2,8 @@ import BASE_URL from "./BASE_URL.ts";
 import { getJWT } from "./BASE_URL.ts";
 import axios from "axios";
 
-export const getConnectionSuggestion = async (): Promise<any> => {
-	return await axios.get(`${BASE_URL}/connection/suggestion`, {
+export const getConnectionSuggestion = async (page: number): Promise<any> => {
+	return await axios.get(`${BASE_URL}/connection/suggestion/${page}`, {
 		headers: {
 			Authorization: `Bearer ${getJWT()}`,
 		},

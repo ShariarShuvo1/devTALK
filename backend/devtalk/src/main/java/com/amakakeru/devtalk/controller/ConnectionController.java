@@ -7,6 +7,9 @@ import com.amakakeru.devtalk.repository.ConnectionRepository;
 import com.amakakeru.devtalk.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -17,6 +20,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @RestController
 @RequiredArgsConstructor
@@ -29,18 +33,34 @@ public class ConnectionController {
 	@Autowired
 	private UserRepository userRepository;
 
-	@GetMapping("/suggestion")
-	public ResponseEntity<List<SuggestionDTO>> getSuggestion(Authentication authentication) {
+	public ConnectionController(UserRepository userRepository) {
+		this.userRepository = userRepository;
+	}
+
+	@GetMapping("/suggestion/{page}")
+	public ResponseEntity<List<SuggestionDTO>> getSuggestion(@PathVariable int page,
+															 Authentication authentication) {
 		User currentUser = userRepository.findByEmail(authentication.getName());
 
-		List<SuggestionDTO> suggestedConnections = userRepository.findAll()
+		List<String> connectedUserIds = connectionRepository.findAllByRequesterIdOrRecipientId(currentUser.getId(), currentUser.getId())
 				.stream()
-				.filter(user -> !user.getId().equals(currentUser.getId()))
+				.flatMap(connection -> Stream.of(connection.getRequesterId(), connection.getRecipientId()))
+				.filter(id -> !id.equals(currentUser.getId()))
+				.collect(Collectors.toList());
+
+		connectedUserIds.add(currentUser.getId());
+
+		Pageable pageable = PageRequest.of(page, 15);
+		Page<User> userPage = userRepository.findAllByIdNotIn(connectedUserIds, pageable);
+
+		List<SuggestionDTO> suggestedConnections = userPage.getContent()
+				.stream()
 				.map(user -> new SuggestionDTO(user.getUsername(), user.getProfilePicture(), user.getName()))
 				.collect(Collectors.toList());
 
 		return ResponseEntity.ok(suggestedConnections);
 	}
+
 
 	@GetMapping("/newConnection/{recipientUsername}")
 	public ResponseEntity<String> newConnection(@PathVariable String recipientUsername, Authentication authentication) {

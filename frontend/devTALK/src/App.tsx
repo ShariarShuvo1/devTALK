@@ -53,6 +53,10 @@ function App() {
 					element: isLoggedIn ? <Connections /> : <Homepage />,
 				},
 				{
+					path: "/connections/:name",
+					element: isLoggedIn ? <Connections /> : <Homepage />,
+				},
+				{
 					path: "/resetPassword/:token",
 					element: !isLoggedIn ? <ResetPassword /> : <Homepage />,
 				},

@@ -1,78 +1,63 @@
 import { useEffect, useState } from "react";
-import { SuggestionDTO } from "../../DTO/SuggestionDTO.ts";
 import FullScreenLoading from "../utils/FullScreenLoading.tsx";
-import { getConnectionSuggestion } from "../../api/ConnectionAPI.ts";
-import { StatusCodes } from "http-status-codes";
-import { faUserCircle } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { useNavigate } from "react-router-dom";
-import { Tooltip } from "antd";
+import {
+	faUserPlus,
+	faUserFriends,
+	faUserClock,
+	faUserEdit,
+} from "@fortawesome/free-solid-svg-icons";
+import { useNavigate, useParams } from "react-router-dom";
+import ConnectionBody from "./ConnectionBody.tsx";
 
 function Connections() {
-	const [isFullscreenLoading, setIsFullscreenLoading] = useState(false);
-	const [suggestions, setSuggestions] = useState<SuggestionDTO[]>([]);
+	const [isFullscreenLoading, _setIsFullscreenLoading] = useState(false);
 	const navigate = useNavigate();
+	const { name } = useParams();
+	const [currentlySelected, setCurrentlySelected] = useState<string>(
+		name || "my-connections",
+	);
 
 	useEffect(() => {
-		const fetchSuggestions = async () => {
-			setIsFullscreenLoading(true);
-			const response = await getConnectionSuggestion();
-			if (response.status === StatusCodes.OK) {
-				setSuggestions(response.data);
-			}
-			setIsFullscreenLoading(false);
-		};
-		fetchSuggestions();
-	}, []);
+		if (!name) {
+			navigate("/connections/my-connections");
+		}
+		setCurrentlySelected(name || "my-connections");
+	}, [name]);
+
+	const toolbarItems = [
+		{
+			label: "My Connections",
+			icon: faUserFriends,
+			path: "my-connections",
+		},
+		{ label: "Suggestions", icon: faUserPlus, path: "suggestions" },
+		{ label: "Requests", icon: faUserClock, path: "requests" },
+		{ label: "Sent", icon: faUserEdit, path: "sent" },
+	];
 
 	return (
-		<div className="flex h-[calc(100vh-3.75rem)] p-4">
+		<div className="flex flex-col md:flex-row h-[calc(100vh-3.75rem)]">
 			<FullScreenLoading isFullscreenLoading={isFullscreenLoading} />
-			<div className="flex flex-col gap-4">
-				{suggestions.map((suggestion) => (
+			<div className="select-none md:max-w-56 md:h-full w-full md:w-auto fixed md:relative bottom-0 md:bottom-auto bg-slate-800 text-xl font-semibold text-white p-2 flex md:flex-col justify-between md:justify-normal gap-2">
+				{toolbarItems.map((item) => (
 					<div
-						key={suggestion.username}
-						className="flex items-center gap-4 p-4 border rounded-lg hover:bg-gray-900 transition-all cursor-pointer hover:text-violet-700"
-						onClick={() =>
-							navigate(`/profile/${suggestion.username}`)
-						}
+						key={item.path}
+						className={`flex items-center gap-4 p-2 rounded-lg cursor-pointer transition duration-300 ${
+							currentlySelected === item.path
+								? "bg-slate-950"
+								: "md:hover:bg-gray-700"
+						}`}
+						onClick={() => navigate(`/connections/${item.path}`)}
 					>
-						{suggestion.profilePicture ? (
-							<img
-								src={suggestion.profilePicture}
-								alt="profile"
-								className="h-16 w-16 rounded-full"
-							/>
-						) : (
-							<FontAwesomeIcon
-								icon={faUserCircle}
-								className="text-6xl"
-							/>
-						)}
-
-						<div>
-							<div className="font-bold">
-								<Tooltip
-									title={suggestion.name}
-									placement="bottom"
-									color={"#040126"}
-								>
-									{suggestion.name
-										.split(" ")
-										.slice(0, 2)
-										.join(" ")}
-								</Tooltip>
-							</div>
-							<div className="text-gray-500">
-								{suggestion.username}
-							</div>
+						<FontAwesomeIcon icon={item.icon} />
+						<div className="hidden text-sm md:text-xl sm:block">
+							{item.label}
 						</div>
-						<button className="bg-indigo-500 hover:bg-indigo-600 text-white px-4 py-2 rounded">
-							Connect
-						</button>
 					</div>
 				))}
 			</div>
+			<ConnectionBody currentlySelected={currentlySelected} />
 		</div>
 	);
 }
