@@ -39,11 +39,11 @@ export const acceptConnection = async (
 	);
 };
 
-export const rejectConnection = async (
+export const deleteSentConnection = async (
 	requesterUsername: string,
 ): Promise<any> => {
-	return await axios.get(
-		`${BASE_URL}/connection/rejectConnection/${requesterUsername}`,
+	return await axios.delete(
+		`${BASE_URL}/connection/deleteSentConnection/${requesterUsername}`,
 		{
 			headers: {
 				Authorization: `Bearer ${getJWT()}`,
@@ -67,8 +67,8 @@ export const blockConnection = async (
 	);
 };
 
-export const getMyConnections = async (): Promise<any> => {
-	return await axios.get(`${BASE_URL}/connection/myConnections`, {
+export const getMyConnections = async (page: number): Promise<any> => {
+	return await axios.get(`${BASE_URL}/connection/myConnections/${page}`, {
 		headers: {
 			Authorization: `Bearer ${getJWT()}`,
 		},
@@ -76,8 +76,8 @@ export const getMyConnections = async (): Promise<any> => {
 	});
 };
 
-export const getPendingRequests = async (): Promise<any> => {
-	return await axios.get(`${BASE_URL}/connection/pendingRequests`, {
+export const getPendingRequests = async (page: number): Promise<any> => {
+	return await axios.get(`${BASE_URL}/connection/pendingRequests/${page}`, {
 		headers: {
 			Authorization: `Bearer ${getJWT()}`,
 		},
@@ -85,8 +85,8 @@ export const getPendingRequests = async (): Promise<any> => {
 	});
 };
 
-export const getSentRequests = async (): Promise<any> => {
-	return await axios.get(`${BASE_URL}/connection/sentRequests`, {
+export const getSentRequests = async (page: number): Promise<any> => {
+	return await axios.get(`${BASE_URL}/connection/sentRequests/${page}`, {
 		headers: {
 			Authorization: `Bearer ${getJWT()}`,
 		},

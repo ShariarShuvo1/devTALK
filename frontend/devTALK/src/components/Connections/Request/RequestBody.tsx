@@ -1,50 +1,34 @@
-import SuggestionCard from "./SuggestionCard.tsx";
 import { Spin } from "antd";
 import { useCallback, useEffect, useState } from "react";
 import { SuggestionDTO } from "../../../DTO/SuggestionDTO.ts";
-import {
-	getConnectionSuggestion,
-	newConnection,
-} from "../../../api/ConnectionAPI.ts";
+import { getPendingRequests } from "../../../api/ConnectionAPI.ts";
 import { StatusCodes } from "http-status-codes";
 import { errorMessageService } from "../../../contexts/ErrorMessageService.ts";
+import RequestCard from "./RequestCard.tsx";
 
-function SuggestionBody({ currentlySelected }: { currentlySelected: string }) {
-	const [suggestions, setSuggestions] = useState<SuggestionDTO[]>([]);
+function RequestBody({ currentlySelected }: { currentlySelected: string }) {
+	const [requests, setRequests] = useState<SuggestionDTO[]>([]);
 	const [page, setPage] = useState(0);
 	const [hasMore, setHasMore] = useState(true);
 	const [loading, setLoading] = useState(false);
 
 	useEffect(() => {
-		setSuggestions([]);
+		setRequests([]);
 		setPage(0);
 		setHasMore(true);
 	}, [currentlySelected]);
 
-	const fetchConnectionSuggestions = async (pageNumber: number) => {
+	const fetchConnectionRequests = async (pageNumber: number) => {
 		setLoading(true);
-		const response = await getConnectionSuggestion(pageNumber);
+		const response = await getPendingRequests(pageNumber);
 		setLoading(false);
 
 		if (response.status === StatusCodes.OK) {
 			if (response.data.length === 0) {
 				setHasMore(false);
 			} else {
-				setSuggestions((prev) => [...prev, ...response.data]);
+				setRequests((prev) => [...prev, ...response.data]);
 			}
-		} else {
-			errorMessageService.errorMessage(response.data);
-		}
-	};
-
-	const sendConnectionRequest = async (username: string, index: number) => {
-		const response = await newConnection(username);
-		if (response.status === StatusCodes.OK) {
-			setSuggestions((prev) => {
-				const updated = [...prev];
-				updated[index] = { ...updated[index], connectionSent: true };
-				return updated;
-			});
 		} else {
 			errorMessageService.errorMessage(response.data);
 		}
@@ -77,29 +61,24 @@ function SuggestionBody({ currentlySelected }: { currentlySelected: string }) {
 	);
 
 	useEffect(() => {
-		if (currentlySelected === "suggestions") {
-			fetchConnectionSuggestions(page);
+		if (currentlySelected === "requests") {
+			fetchConnectionRequests(page);
 		}
 	}, [currentlySelected, page]);
 	return (
 		<div>
 			<div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-4">
-				{currentlySelected === "suggestions" &&
-					suggestions.map((suggestion, index) => (
-						<SuggestionCard
-							key={index}
-							suggestion={suggestion}
-							onConnect={sendConnectionRequest}
-							index={index}
-						/>
+				{currentlySelected === "requests" &&
+					requests.map((request, index) => (
+						<RequestCard key={index} request={request} />
 					))}
 			</div>
-			{currentlySelected === "suggestions" && (
+			{currentlySelected === "requests" && (
 				<div ref={observer} className="text-center  items-center my-4">
 					{loading && <Spin size="large" />}
 					{!hasMore && !loading && (
 						<p className="text-gray-500 mt-4">
-							No more suggestions available
+							No more requests available
 						</p>
 					)}
 				</div>
@@ -108,4 +87,4 @@ function SuggestionBody({ currentlySelected }: { currentlySelected: string }) {
 	);
 }
 
-export default SuggestionBody;
+export default RequestBody;

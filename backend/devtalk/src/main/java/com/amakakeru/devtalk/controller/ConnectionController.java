@@ -12,13 +12,11 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -117,26 +115,6 @@ public class ConnectionController {
 		return ResponseEntity.ok("Connection request accepted");
 	}
 
-	@GetMapping("/rejectConnection/{requesterUsername}")
-	public ResponseEntity<String> rejectConnection(@PathVariable String requesterUsername, Authentication authentication) {
-		User recipient = userRepository.findByEmail(authentication.getName());
-		User requester = userRepository.findByUsername(requesterUsername);
-
-		if (requester == null) {
-			return ResponseEntity.badRequest().body("Requester not found");
-		}
-
-		Connection connection = connectionRepository.findByRequesterIdAndRecipientId(requester.getId(), recipient.getId());
-		if (connection == null) {
-			return ResponseEntity.badRequest().body("Connection request not found");
-		}
-
-		connection.setStatus(Connection.ConnectionStatus.REJECTED);
-		connectionRepository.save(connection);
-
-		return ResponseEntity.ok("Connection request rejected");
-	}
-
 	@GetMapping("/blockConnection/{requesterUsername}")
 	public ResponseEntity<String> blockConnection(@PathVariable String requesterUsername, Authentication authentication) {
 		User recipient = userRepository.findByEmail(authentication.getName());
@@ -157,12 +135,18 @@ public class ConnectionController {
 		return ResponseEntity.ok("Connection request blocked");
 	}
 
-	@GetMapping("/myConnections")
-	public ResponseEntity<List<SuggestionDTO>> getMyConnections(Authentication authentication) {
+	@GetMapping("/myConnections/{page}")
+	public ResponseEntity<List<SuggestionDTO>> getMyConnections(
+			@PathVariable int page,
+			@RequestParam(defaultValue = "15") int size,
+			Authentication authentication) {
+
 		User user = userRepository.findByEmail(authentication.getName());
 
-		List<Connection> connections = connectionRepository.findAllByRequesterIdOrRecipientId(user.getId(), user.getId());
-		List<SuggestionDTO> myConnections = connections.stream()
+		Pageable pageable = PageRequest.of(page, size);
+		Page<Connection> connectionsPage = connectionRepository.findAllByRequesterIdOrRecipientId(user.getId(), user.getId(), pageable);
+
+		List<SuggestionDTO> suggestionDTOList = connectionsPage.getContent().stream()
 				.filter(connection -> connection.getStatus() == Connection.ConnectionStatus.ACCEPTED)
 				.map(connection -> {
 					User connectedUser = user.getId().equals(connection.getRequesterId()) ?
@@ -170,20 +154,28 @@ public class ConnectionController {
 							userRepository.findById(connection.getRequesterId()).orElse(null);
 					return new SuggestionDTO(connectedUser.getUsername(), connectedUser.getProfilePicture(), connectedUser.getName());
 				})
+				.filter(Objects::nonNull)
 				.collect(Collectors.toList());
 
-		return ResponseEntity.ok(myConnections);
+		// Return ResponseEntity with List<SuggestionDTO>
+		return ResponseEntity.ok(suggestionDTOList);
 	}
 
-	@GetMapping("/pendingRequests")
-	public ResponseEntity<List<SuggestionDTO>> getPendingRequests(Authentication authentication) {
+
+	@GetMapping("/pendingRequests/{page}")
+	public ResponseEntity<List<SuggestionDTO>> getPendingRequests(@PathVariable int page, Authentication authentication) {
+		Pageable pageable = PageRequest.of(page, 15);
 		User user = userRepository.findByEmail(authentication.getName());
 
-		List<Connection> connections = connectionRepository.findAllByRequesterIdOrRecipientId(user.getId(), user.getId());
-		List<SuggestionDTO> pendingRequests = connections.stream()
-				.filter(connection -> connection.getStatus() == Connection.ConnectionStatus.PENDING)
+		Page<Connection> connectionsPage = connectionRepository.findAllByRecipientIdAndStatus(
+				user.getId(), Connection.ConnectionStatus.PENDING, pageable);
+
+		List<SuggestionDTO> pendingRequests = connectionsPage.getContent().stream()
 				.map(connection -> {
-					User requester = userRepository.findById(connection.getRequesterId()).orElse(null);
+					String requesterId = connection.getRequesterId().equals(user.getId())
+							? connection.getRecipientId()
+							: connection.getRequesterId();
+					User requester = userRepository.findById(requesterId).orElse(null);
 					return new SuggestionDTO(requester.getUsername(), requester.getProfilePicture(), requester.getName());
 				})
 				.collect(Collectors.toList());
@@ -191,20 +183,49 @@ public class ConnectionController {
 		return ResponseEntity.ok(pendingRequests);
 	}
 
-	@GetMapping("/sentRequests")
-	public ResponseEntity<List<SuggestionDTO>> getSentRequests(Authentication authentication) {
+
+	@GetMapping("/sentRequests/{page}")
+	public ResponseEntity<List<SuggestionDTO>> getSentRequests(@PathVariable int page, Authentication authentication) {
+		Pageable pageable = PageRequest.of(page, 15);
 		User user = userRepository.findByEmail(authentication.getName());
 
-		List<Connection> connections = connectionRepository.findAllByRequesterIdOrRecipientId(user.getId(), user.getId());
-		List<SuggestionDTO> sentRequests = connections.stream()
-				.filter(connection -> connection.getStatus() == Connection.ConnectionStatus.PENDING)
+		Page<Connection> connectionsPage = connectionRepository.findAllByRequesterIdAndStatus(
+				user.getId(), Connection.ConnectionStatus.PENDING, pageable);
+
+		List<SuggestionDTO> pendingRequests = connectionsPage.getContent().stream()
 				.map(connection -> {
-					User recipient = userRepository.findById(connection.getRecipientId()).orElse(null);
-					return new SuggestionDTO(recipient.getUsername(), recipient.getProfilePicture(), recipient.getName());
+					String requesterId = connection.getRequesterId().equals(user.getId())
+							? connection.getRecipientId()
+							: connection.getRequesterId();
+					User requester = userRepository.findById(requesterId).orElse(null);
+					return new SuggestionDTO(requester.getUsername(), requester.getProfilePicture(), requester.getName());
 				})
 				.collect(Collectors.toList());
 
-		return ResponseEntity.ok(sentRequests);
+		return ResponseEntity.ok(pendingRequests);
+	}
+
+	@DeleteMapping("/deleteSentConnection/{username}")
+	public ResponseEntity<String> deleteConnection(@PathVariable String username, Authentication authentication) {
+		User requester = userRepository.findByEmail(authentication.getName());
+		User recipient = userRepository.findByUsername(username);
+
+		if (recipient == null) {
+			return ResponseEntity.badRequest().body("Recipient not found");
+		}
+
+		Connection connection = connectionRepository.findByRequesterIdAndRecipientId(requester.getId(), recipient.getId());
+		if (connection == null) {
+			connection = connectionRepository.findByRequesterIdAndRecipientId(recipient.getId(), requester.getId());
+		}
+
+		if (connection == null) {
+			return ResponseEntity.badRequest().body("Connection not found");
+		}
+
+		connectionRepository.delete(connection);
+
+		return ResponseEntity.ok("Connection deleted");
 	}
 
 }

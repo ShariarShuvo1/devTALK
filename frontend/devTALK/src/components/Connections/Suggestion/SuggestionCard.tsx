@@ -5,7 +5,7 @@ import {
 	faCheckCircle,
 } from "@fortawesome/free-solid-svg-icons";
 import { motion } from "framer-motion";
-import { SuggestionDTO } from "../../DTO/SuggestionDTO.ts";
+import { SuggestionDTO } from "../../../DTO/SuggestionDTO.ts";
 import { useNavigate } from "react-router-dom";
 
 interface SuggestionCardProps {
